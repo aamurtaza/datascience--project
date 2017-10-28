@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import matplotlib.pyplot as plt
 import numpy as np
 import nltk
 import os
 import pandas as pd
 import string
+from PIL import Image
 
+# nltk.download('corpora') # Uncomment this if corpora/stopwords is not found in nltk resources
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
+from wordcloud import WordCloud
 
 def make_passage(reviews):
     passage = ""
@@ -41,6 +45,55 @@ def top_features_in_doc(tfidf_matrix, features, rows, top_n=25):
             df_neg  = top_tfidf_features(row, features, top_n)
     return df_pos, df_neg
 
+def hotels_within_clusters(cluster_hotels):
+    cluster1 = cluster2 = cluster3 = cluster4 = cluster5 = cluster6 = cluster7 = cluster8 = []
+    for k, v in cluster_hotels.items():
+        print(v)
+        if(v == "Cluster 0"):
+            cluster1.append(k)
+        elif (v == "Cluster 1"):
+            cluster2.append(k)
+        elif (v == "Cluster 2"):
+            cluster3.append(k)
+        elif (v == "Cluster 3"):
+            cluster4.append(k)
+        elif (v == "Cluster 4"):
+            cluster5.append(k)
+        elif (v == "Cluster 5"):
+            cluster6.append(k)
+        elif (v == "Cluster 6"):
+            cluster7.append(k)
+        elif (v == "Cluster 7"):
+            cluster8.append(k)
+
+def save_wordcloud_hotels_with_clusters():
+    # Read Cluster Model
+    with open(base_path + "/models/hotels_clusters.txt") as f:
+        hotels_within_clusters = f.read() # whole txt file
+    hotels_within_clusters = hotels_within_clusters[:-3]
+    hotels_within_clusters = hotels_within_clusters.split(",")
+    
+    count = 1
+    for hotels_names in hotels_within_clusters:
+        hotels_names = hotels_names.replace(' ', "")
+        hotels_names = hotels_names.replace(':', " ")
+        # Generate a word cloud image
+        one_mask = np.array(Image.open(base_path + "/mask_images/"+str(count)+".png"))
+        
+        wordcloud1 = WordCloud(background_color="white", mask=one_mask).generate(clusters[count-1])
+        wordcloud2 = WordCloud(background_color="white").generate(hotels_names)
+        fig = plt.figure()
+        fig.add_subplot(1, 2, 1)
+        plt.imshow(wordcloud1, interpolation="bilinear")
+        plt.axis("off")
+        plt.title("Indicative words in cluster " + str(count), fontSize=18)
+        fig.add_subplot(1, 2, 2)
+        plt.imshow(wordcloud2, interpolation="bilinear")
+        plt.axis("off")
+        plt.tight_layout()
+        plt.title("Hotels within cluster", fontSize=18)
+        fig.savefig(base_path + '/wordcloud/cluster_'+str(count)+".png")
+        count = count + 1
 
 base_path =  os.path.dirname(os.path.abspath('__file__'))   
 
@@ -126,4 +179,6 @@ for hotel_name in hotels:
     max_key = max(cluster_scores, key=cluster_scores.get)    
     cluster_hotels[hotel_name] = max_key          
     
-print(cluster_hotels)
+#print(cluster_hotels)
+hotels_within_clusters(cluster_hotels)
+save_wordcloud_hotels_with_clusters()
