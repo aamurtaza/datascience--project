@@ -64,7 +64,7 @@ tfidf_matrix = vectorizer.fit_transform(corpus)
 feature_names = vectorizer.get_feature_names()
 rows, columns = tfidf_matrix.shape
 
-n_cluster = 5
+n_cluster = 8
 km = KMeans(n_clusters=n_cluster, init='k-means++', max_iter=100, n_init=1)
 print("Clustering sparse data with %s" % km)
 t0 = time()
@@ -83,12 +83,13 @@ print("Silhouette Coefficient: %0.3f"
       % metrics.silhouette_score(tfidf_matrix, km.labels_, sample_size=1000))
 print()
 
+
 order_centroids = km.cluster_centers_.argsort()[:, ::-1]
 terms = vectorizer.get_feature_names()
 file = open(os.path.expanduser(r""+base_path+"/models/cluster_model.txt"), "wb")
 for i in range(0,n_cluster):
     print("Cluster %d:" % i, end='')
-    for ind in order_centroids[i, :100]:
+    for ind in order_centroids[i, :150]:
         print(' %s' % terms[ind], end='')
         record = str(terms[ind]) + " "
         file.write(bytes(record, encoding="ascii", errors='ignore'))
